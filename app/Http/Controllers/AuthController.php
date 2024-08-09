@@ -25,7 +25,7 @@ class AuthController extends Controller
             'last_name' => $data['last_name'],
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
-            'verification_code' => rand('0', '999999'),
+            'verification_code' => random_int('100000', '999999'),
         ]);
         
         // enviar correo de confirmación
