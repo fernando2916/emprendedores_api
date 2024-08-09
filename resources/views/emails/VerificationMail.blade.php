@@ -10,6 +10,6 @@
     <h1 class="">Codigo de verificación</h1>
     
     <h2>Hola</h2>
-    <p> Tu codigo de verificaión es: {{ $token }}</p>
+    <p> Tu codigo de verificaión es: {{ $code }}</p>
 </body>
 </html>
