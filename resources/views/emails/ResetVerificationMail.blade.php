@@ -7,12 +7,13 @@
     <title>Document</title>
 </head>
 <body>
-    <h1 class="">Código de verificación</h1>
+    <h1 class="">Nuevo Código de verificación</h1>
     
-    <p>Hola: {{ $name }} {{ $last_name }}, te has registrado satisfactioriamente en Emprendedores Creativos, ya casi esta todo listo, solo debes confirmar tu cuenta.
+    <p>
+        Hola: {{ $name }} {{$last_name}}, aqui tienes un nuevo código de verificación
     </p>
     <p>Visita el siguiente enlace:</p>
-    <a href="{{ env("FRONTEND_URL")."/auth/activar-cuenta/".$user->verification_id }}">
+    <a href="{{ env("FRONTEND_URL")."/auth/activar-cuenta/".$user->verification_id  }}">
         Confirmar cuenta
     </a> 
     <p> 
