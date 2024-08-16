@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Requests\RegistroRequest;
+use Illuminate\support\Str;
+use App\Mail\PasswordResetEmail;
 use App\Mail\ResetVerifyCodeMail;
 use App\Mail\VerificationMail;
 use Illuminate\Support\Facades\Mail;
@@ -27,7 +29,7 @@ class AuthController extends Controller
             'password' => bcrypt($data['password']),
             'verification_code' => random_int('100000', '999999'),
             'verification_code_expires_at' => $expiration,
-            'verification_id' => uniqid(),
+            'verification_id' => Str::uuid(),
         ]);
                
         // enviar correo de confirmación
@@ -69,7 +71,6 @@ class AuthController extends Controller
 
        return response()->json(['message' => 'Correo electrónico verificado exitosamente.'], 200);
     }
-    
     
     public function reset_Code(Request $request){
         $validator = Validator::make($request->all(),[
@@ -131,6 +132,62 @@ class AuthController extends Controller
             'token' => $token,
         ], 200);
 
+    }
+
+    public function reset_Password(Request $request){
+        $request->validate(['email' => 'required|email']);
+
+        // Verificar si el usuario exite
+        $user = User::where('email', $request->email)->first();
+
+        if(!$user) {
+            return response()->json(['message' => 'No se encontró ningún usuario con ese correo electrónico'], 404);
+        }
+
+        // Generar un nuevo identificador si el actual es nulo
+        if(is_null($user->verification_id)){
+            $user->verification_id = Str::uuid();
+            $user->save();
+        }
+
+        // Enviar correo con el enlace
+        Mail::to($user->email)->send(new PasswordResetEmail($user));
+
+        return response()->json(['message' => 'Correo enviado con las instrucciones para restablecer la contraseña.'], 200);
+    }
+
+    public function new_Password(Request $request, $id){
+        $messages = [
+            'password.redex' => 'La contraseña debe de contener al menos 8 caracteres, un símbolo y un numero',
+            'password.confirmed' => 'Las contraseñas no son iguales'
+        ];
+
+        $request->validate([
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'regex:/[a-zA-Z]/',  // Debe contener al menos una letra
+                'regex:/[0-9]/',     // Debe contener al menos un número
+                'regex:/[@$!%*#?&_]/' // Debe contener al menos un símbolo
+            ]
+        ], $messages);
+
+       // Busca al usuario por su verification_id
+       $user = User::where('verification_id', $id)->first();
+
+       if (!$user) {
+        return response()->json(['message' => 'Identificador no válido.'], 404);
+        }
+
+         // Actualiza la contraseña
+         $user->password = bcrypt($request->password);
+          // Opcional: Limpiar el verification_id después de restablecer la contraseña
+        $user->verification_id = null;
+        $user->save();
+
+        return response()->json(['message' => 'Contraseña actualizada correctamente.'], 200);
     }
 
     public function refreshToken(){
