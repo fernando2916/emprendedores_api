@@ -41,7 +41,7 @@ class PasswordResetEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            from: new Address('admin@emprendedorescreativos.com.mx', 'admin'),
+            from: new Address('no-reply@creadorescreativos.com.mx', 'Emprendedores Creativos'),
             subject: 'Restablecer contraseña',
         );
     }

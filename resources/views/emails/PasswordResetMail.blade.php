@@ -30,7 +30,7 @@
 <body>
     <div class="container">
         <h2> Hola {{ $name}} {{ $last_name}}, has solicitado restablecer tu contraseña, visita el siguiente link para poder hacerlo.</h2>
-        <a href="{{ env("FRONTEND_URL")."/auth/new-password".$user->verification_id}}">Restablecer Contraseña</a>
+        <a href="{{ env("FRONTEND_URL")."/auth/nueva_contraseña/".$user->verification_id}}">Restablecer Contraseña</a>
     </div>
     <div>
         <p>Si tu no lo solicitaste, ignora este mensaje.</p>

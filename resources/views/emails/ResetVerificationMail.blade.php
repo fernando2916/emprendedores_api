@@ -36,7 +36,7 @@
       Hola: {{ $name }} {{ $last_name }}, aqui tienes un nuevo código de verificación
     </p>
     <p>Visita el siguiente enlace:</p>
-    <a class="" href="{{ env('FRONTEND_URL') . '/auth/activar-cuenta/' . $user->verification_id }}">
+    <a class="" href="{{ env('FRONTEND_URL') . '/auth/activar_cuenta/' . $user->verification_id }}">
       Confirmar cuenta
     </a>
     <p>
@@ -44,7 +44,7 @@
       <span class="">
         {{ $verification_code }}
       </span>
-      Este código expira en 10 minutos.
+      Este código expira en 15 minutos.
     </p>
   </div>
 

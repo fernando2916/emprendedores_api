@@ -9,6 +9,7 @@ use Illuminate\support\Str;
 use App\Mail\PasswordResetEmail;
 use App\Mail\ResetVerifyCodeMail;
 use App\Mail\VerificationMail;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -17,7 +18,7 @@ class AuthController extends Controller
 {
 
     public function register(RegistroRequest $request) {
-        $expiration = now()->addMinutes(10);
+        $expiration = now()->addMinutes(15);
         // validar el registro
         $data = $request->validated();
         
@@ -37,22 +38,26 @@ class AuthController extends Controller
         
         return response()->json([
             // 'user' => $user,
-            'message' => 'Usuario registrado correctamente. Por favor, revisa tu correo para verificar tu cuenta.',
+            'message' => 'Usuario registrado correctamente. Por favor, revisa tu correo y sigue las instrucciones.',
 
         ], 201);
         
     }
 
-    public function verify($id, $verification_code) {
+    public function verify(Request $request, $id) {
+
+        $request->validate([
+            'verification_code' => 'digits:6|required'
+        ]);
        // Busca al usuario por el identificador único
        $user = User::where('verification_id', $id)->first();
 
        if (!$user) {
-           return response()->json(['message' => 'Identificador no encontrado.'], 404);
+           return response()->json(['message' => 'Usario no encontrado.'], 404);
        }
 
        // Verifica que el código de verificación sea correcto
-       if ($user->verification_code != $verification_code) {
+       if ($user->verification_code !== $request->verification_code) {
            return response()->json(['message' => 'Código de verificación inválido.'], 400);
        }
 
@@ -66,10 +71,15 @@ class AuthController extends Controller
        $user->email_verified_at = now();
        $user->verification_code = null; // Limpia el token de verificación
        $user->verification_code_expires_at = null;
-       $user->verification_id = null; // Opcional: Limpia el identificador único después de la verificación
        $user->save();
 
-       return response()->json(['message' => 'Correo electrónico verificado exitosamente.'], 200);
+       $token = JWTAuth::fromUser($user);
+
+       return response()->json([
+        'message' => 'Correo electrónico verificado exitosamente.',
+        'token' => $token,
+
+    ], 200);
     }
     
     public function reset_Code(Request $request){
@@ -95,7 +105,7 @@ class AuthController extends Controller
         }
     
         $user->verification_code = rand(100000, 999999);
-        $user->verification_code_expires_at = now()->addMinutes(10);
+        $user->verification_code_expires_at = now()->addMinutes(15);
         $user->save();
     
         Mail::to($user->email)->send(new ResetVerifyCodeMail($user));
@@ -104,13 +114,18 @@ class AuthController extends Controller
     }
 
     public function login(Request $request) {
+        $messages = [
+            'email.required' => 'El correo es obligatorio',
+            'email.email' => 'El correo no es válido',
+            'password.required' => 'La contraseña es obligatoria.'
+        ];
     
         $credentials = $request->only(['email', 'password']);
 
         $validator = Validator::make($credentials, [
             'email' => 'required|email',
-            'password' => 'required|string|min:8',
-        ]);
+            'password' => 'required|string|',
+        ], $messages);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
@@ -118,7 +133,7 @@ class AuthController extends Controller
 
         // Intento de Inicio de Sesión
         if (!$token = JWTAuth::attempt($credentials)) {
-            return response()->json(['message' => 'El Correo o la contraseña son incorrectos'], 422);
+            return response()->json(['message' => 'Correo o Contraseña incorrecta'], 422);
         }
          
         // Verificación de Email
@@ -128,6 +143,7 @@ class AuthController extends Controller
         }
 
         return response()->json([
+            'user' => $user,
             'message' => 'Inicio de sesión exitoso',
             'token' => $token,
         ], 200);
@@ -141,13 +157,7 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if(!$user) {
-            return response()->json(['message' => 'No se encontró ningún usuario con ese correo electrónico'], 404);
-        }
-
-        // Generar un nuevo identificador si el actual es nulo
-        if(is_null($user->verification_id)){
-            $user->verification_id = Str::uuid();
-            $user->save();
+            return response()->json(['message' => 'Este correo no esta registrado'], 404);
         }
 
         // Enviar correo con el enlace
@@ -194,8 +204,10 @@ class AuthController extends Controller
         try {
 
             $newToken = JWTAuth::parseToken()->refresh();
+            $user = Auth::user();
 
             return response()->json([
+                'user' => $user,
                 'message' => 'token actualiado',
                 'token' => $newToken,
             ], 200);
