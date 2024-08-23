@@ -26,7 +26,24 @@ class User extends Authenticatable implements JWTSubject
         'verification_code_expires_at',
         'is_verified',
         'verification_id',
+        'role_id',
     ];
+
+    public function role(){
+        return $this->belongsTo(Role::class);
+    }
+
+    protected static function boot(){
+
+        parent::boot();
+
+        static::creating(function ($user) {
+            if (!$user->role_id) {
+                $user->role_id = Role::where('name', 'user')->first()->id;
+            }
+        });
+    }
+
 
     /**
      * The attributes that should be hidden for serialization.
