@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CategoriaController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,5 +27,6 @@ Route::group([
 });
 
 Route::apiResource('/categorias', CategoriaController::class);
-Route::apiResource('/categorias/{id}', CategoriaController::class);
+// Route::apiResource('/categorias/{id}', CategoriaController::class);
+Route::apiResource('/blog', BlogController::class);
 

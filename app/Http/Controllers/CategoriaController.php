@@ -13,10 +13,10 @@ class CategoriaController extends Controller
         return new CategoriaCollection(Categoria::all());
     }
 
-    public function show($id){
-        $categoria = Categoria::findOrFail($id);
+    // public function show($id){
+    //     $categoria = Categoria::findOrFail($id);
 
-        return new CategoriaResource($categoria);
-    }
+    //     return new CategoriaResource($categoria);
+    // }
 
 }
