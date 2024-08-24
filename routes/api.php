@@ -29,4 +29,5 @@ Route::group([
 Route::apiResource('/categorias', CategoriaController::class);
 // Route::apiResource('/categorias/{id}', CategoriaController::class);
 Route::apiResource('/blog', BlogController::class);
+Route::apiResource('/blog/{identifier}', BlogController::class);
 

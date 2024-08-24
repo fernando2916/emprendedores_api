@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('contenido');
             $table->foreignId('categoria_id')->constrained()->onDelete('cascade');
             $table->string('tipo');
+            $table->string('slug');
             $table->string('tiempo_de_lectura');
             $table->string('autor');
             $table->timestamps();

@@ -32,12 +32,13 @@ class BlogController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show($identifier)
     {
         //
-        $blog = Blog::with('categoria')->findOrFail($id);
+        $blogs = Blog::where('slug', $identifier)
+                    ->firstOrFail();
 
-        return new BlogResource($blog);
+        return new BlogResource($blogs);
     }
 
     /**
